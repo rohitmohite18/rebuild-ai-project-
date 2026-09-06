@@ -29,7 +29,7 @@ export default function App() {
         <Route
           path="/family"
           element={
-            <ProtectedRoute roles={["family"]}>
+            <ProtectedRoute roles={["survivor"]}>
               <FamilyDashboard />
             </ProtectedRoute>
           }
@@ -37,7 +37,7 @@ export default function App() {
         <Route
           path="/family/help"
           element={
-            <ProtectedRoute roles={["family"]}>
+            <ProtectedRoute roles={["survivor"]}>
               <HelpRequest />
             </ProtectedRoute>
           }
@@ -45,7 +45,7 @@ export default function App() {
         <Route
           path="/family/status"
           element={
-            <ProtectedRoute roles={["family"]}>
+            <ProtectedRoute roles={["survivor"]}>
               <RecoveryStatus />
             </ProtectedRoute>
           }

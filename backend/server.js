@@ -18,6 +18,7 @@ app.use('/api/families', require('./routes/families'));
 app.use('/api/help', require('./routes/help'));
 app.use('/api/shelters', require('./routes/shelters'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 app.use(notFound);
 app.use(errorHandler);

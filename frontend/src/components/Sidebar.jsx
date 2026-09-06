@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const LINKS = {
-  family: [
+  survivor: [
     { to: "/family", label: "Dashboard" },
     { to: "/family/help", label: "Help request" },
     { to: "/family/status", label: "Recovery status" },

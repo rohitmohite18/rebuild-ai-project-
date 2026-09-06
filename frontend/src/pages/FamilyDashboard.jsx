@@ -26,12 +26,15 @@ export default function FamilyDashboard() {
   const load = async () => {
     try {
       const [famRes, noteRes] = await Promise.all([api.get("/families/mine"), api.get("/notifications")]);
-      setFamily(famRes.data);
-      setNotifications(noteRes.data || []);
-      if (famRes.data?.members) {
+      setFamily(famRes.data.family);
+      setNotifications(noteRes.data.notifications || []);
+      if (famRes.data.family?.members) {
         setForm((prev) => ({
           ...prev,
-          membersText: famRes.data.members.map((m) => `${m.name},${m.age},${m.status}`).join("\n"),
+          membersText: famRes.data.family.members.map((m) => `${m.name},${m.age},${m.status}`).join("\n"),
+          address: famRes.data.family.location?.address || "",
+          lat: famRes.data.family.location?.lat ?? "",
+          lng: famRes.data.family.location?.lng ?? "",
         }));
       }
     } catch (err) {
@@ -71,7 +74,7 @@ export default function FamilyDashboard() {
         basicNeeds: form.basicNeeds,
         members: parseMembers(),
       });
-      setFamily(res.data);
+      setFamily(res.data.family);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -84,12 +87,57 @@ export default function FamilyDashboard() {
     setError("");
     try {
       const res = await api.patch("/families/mine/members", { members: parseMembers() });
-      setFamily(res.data);
+      setFamily(res.data.family);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setBusy(false);
     }
+  };
+
+  const saveLocation = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await api.put(`/families/${family._id}`, {
+        location: {
+          address: form.address,
+          lat: Number(form.lat),
+          lng: Number(form.lng),
+        },
+      });
+      setFamily(res.data.family);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const useCurrentLocation = () => {
+    setError("");
+    if (!navigator.geolocation) {
+      setError("Location services are not supported by this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setForm((prev) => ({
+          ...prev,
+          lat: coords.latitude.toFixed(6),
+          lng: coords.longitude.toFixed(6),
+        }));
+      },
+      (positionError) => {
+        const messages = {
+          1: "Location permission was denied. Allow it for this site and try again.",
+          2: "Your device could not determine a location. Turn on system Location Services or enter the address and coordinates manually.",
+          3: "Finding your location timed out. Check your internet connection and try again.",
+        };
+        setError(messages[positionError.code] || "We could not access your location. Enter it manually instead.");
+      },
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 300000 }
+    );
   };
 
   const toggleNeed = (need) => {
@@ -158,6 +206,11 @@ export default function FamilyDashboard() {
               onChange={(e) => setForm({ ...form, lng: e.target.value })}
             />
           </label>
+          <div className="md:col-span-2">
+            <button type="button" onClick={useCurrentLocation} className="rounded-lg border px-4 py-2 text-sm hover:bg-slate-50">
+              Use my current location
+            </button>
+          </div>
         </div>
         <p className="mt-4 text-sm font-medium">Basic needs</p>
         <div className="mt-2 flex flex-wrap gap-3">
@@ -219,6 +272,38 @@ export default function FamilyDashboard() {
             <Link to="/family/status" className="rounded-lg border px-4 py-2 text-sm">
               Recovery status
             </Link>
+          </div>
+          <div className="mt-6 border-t pt-5">
+            <h2 className="font-medium">Map location</h2>
+            <p className="mt-1 text-sm text-slate-600">Save your coordinates to place this family on the admin map.</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <input
+                className="input sm:col-span-3"
+                placeholder="Address"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+              />
+              <input
+                required
+                className="input"
+                placeholder="Latitude, e.g. 19.0760"
+                value={form.lat}
+                onChange={(e) => setForm({ ...form, lat: e.target.value })}
+              />
+              <input
+                required
+                className="input"
+                placeholder="Longitude, e.g. 72.8777"
+                value={form.lng}
+                onChange={(e) => setForm({ ...form, lng: e.target.value })}
+              />
+              <button type="button" onClick={useCurrentLocation} className="rounded-lg border px-4 py-2 text-sm hover:bg-slate-50">
+                Use my current location
+              </button>
+              <button type="button" onClick={saveLocation} disabled={busy || !form.lat || !form.lng} className="btn-navy">
+                Save location
+              </button>
+            </div>
           </div>
         </div>
       </section>

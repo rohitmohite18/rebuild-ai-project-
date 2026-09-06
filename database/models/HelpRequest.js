@@ -13,7 +13,7 @@ const helpRequestSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['food', 'medical', 'shelter', 'clothing', 'other'],
+      enum: ['food', 'water', 'medical', 'shelter', 'clothing', 'rescue', 'other'],
       required: [true, 'Category is required'],
     },
     description: {

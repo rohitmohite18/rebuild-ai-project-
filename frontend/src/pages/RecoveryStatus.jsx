@@ -15,11 +15,11 @@ export default function RecoveryStatus() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([api.get("/families/mine"), api.get("/help-requests/mine"), api.get("/notifications")])
+    Promise.all([api.get("/families/mine"), api.get("/help"), api.get("/notifications")])
       .then(([famRes, reqRes, noteRes]) => {
-        setFamily(famRes.data);
-        setRequests(reqRes.data || []);
-        setNotifications(noteRes.data || []);
+        setFamily(famRes.data.family);
+        setRequests(reqRes.data.help || []);
+        setNotifications(noteRes.data.notifications || []);
       })
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setReady(true));
@@ -71,7 +71,7 @@ export default function RecoveryStatus() {
           {requests.map((item) => (
             <li key={item._id} className="flex items-start justify-between gap-3 rounded border p-3 text-sm">
               <div>
-                <p className="font-medium capitalize">{item.type}</p>
+                <p className="font-medium capitalize">{item.category}</p>
                 <p className="text-slate-600">{item.description}</p>
                 <p className="mt-1 capitalize text-slate-500">{String(item.status).replaceAll("_", " ")}</p>
               </div>

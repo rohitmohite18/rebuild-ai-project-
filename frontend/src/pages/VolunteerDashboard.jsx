@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "../services/api.js";
 import Loading from "../components/Loading.jsx";
 import PriorityBadge from "../components/PriorityBadge.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function VolunteerDashboard() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
 
   const load = async () => {
     try {
-      const res = await api.get("/help-requests");
-      setRequests(res.data || []);
+      const res = await api.get("/help");
+      setRequests(res.data.help || []);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -26,7 +28,7 @@ export default function VolunteerDashboard() {
   const claim = async (id) => {
     setError("");
     try {
-      await api.patch(`/help-requests/${id}/claim`);
+      await api.put(`/help/${id}`, { status: "assigned", assignedTo: user._id });
       await load();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -36,7 +38,7 @@ export default function VolunteerDashboard() {
   const updateStatus = async (id, status) => {
     setError("");
     try {
-      await api.patch(`/help-requests/${id}/status`, { status });
+      await api.put(`/help/${id}`, { status });
       await load();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -64,31 +66,28 @@ export default function VolunteerDashboard() {
             {requests.map((item) => (
               <tr key={item._id} className="border-b align-top">
                 <td className="py-3">
-                  {item.familyId?.familyName || "Family"}
-                  <div className="text-xs text-slate-500">{item.familyId?.recoveryId}</div>
+                  {item.family?.familyName || "Family"}
+                  <div className="text-xs text-slate-500">{item.family?.recoveryId}</div>
                   <div className="text-xs">{item.description}</div>
                 </td>
-                <td className="capitalize">{item.type}</td>
+                <td className="capitalize">{item.category}</td>
                 <td>
                   <PriorityBadge value={item.priority} />
                 </td>
                 <td className="capitalize">{String(item.status).replaceAll("_", " ")}</td>
                 <td className="space-y-1">
-                  {item.status === "pending" && (
+                  {item.status === "open" && (
                     <button onClick={() => claim(item._id)} className="btn-teal px-2 py-1">
                       Claim
                     </button>
                   )}
-                  {item.status !== "pending" && item.status !== "resolved" && (
+                  {item.status === "assigned" && (
                     <div className="flex flex-wrap gap-1">
-                      <button onClick={() => updateStatus(item._id, "in_progress")} className="btn-navy px-2 py-1">
-                        In progress
-                      </button>
                       <button
-                        onClick={() => updateStatus(item._id, "resolved")}
+                        onClick={() => updateStatus(item._id, "fulfilled")}
                         className="rounded-lg bg-slate-700 px-2 py-1 text-sm text-white"
                       >
-                        Resolve
+                        Mark fulfilled
                       </button>
                     </div>
                   )}

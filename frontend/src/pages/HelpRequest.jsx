@@ -10,13 +10,13 @@ export default function HelpRequest() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ type: "food", description: "" });
+  const [form, setForm] = useState({ category: "food", description: "" });
 
   const load = async () => {
     try {
-      const [reqRes, famRes] = await Promise.all([api.get("/help-requests/mine"), api.get("/families/mine")]);
-      setRequests(reqRes.data || []);
-      setFamily(famRes.data);
+      const [reqRes, famRes] = await Promise.all([api.get("/help"), api.get("/families/mine")]);
+      setRequests(reqRes.data.help || []);
+      setFamily(famRes.data.family);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -33,7 +33,7 @@ export default function HelpRequest() {
     setBusy(true);
     setError("");
     try {
-      await api.post("/help-requests", form);
+      await api.post("/help", { ...form, family: family._id });
       setForm({ ...form, description: "" });
       await load();
     } catch (err) {
@@ -57,7 +57,7 @@ export default function HelpRequest() {
         {error && <p className="mt-3 rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>}
         <label className="mt-4 block text-sm">
           Type
-          <select className="input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+          <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
             <option value="medical">Medical</option>
             <option value="food">Food</option>
             <option value="water">Water</option>
@@ -85,7 +85,7 @@ export default function HelpRequest() {
           {requests.map((item) => (
             <li key={item._id} className="rounded border p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
-                <strong className="capitalize">{item.type}</strong>
+                <strong className="capitalize">{item.category}</strong>
                 <PriorityBadge value={item.priority} />
               </div>
               <p className="mt-1">{item.description}</p>

@@ -33,6 +33,8 @@ const familySchema = new mongoose.Schema(
       address: { type: String, trim: true },
       city: { type: String, trim: true },
       state: { type: String, trim: true },
+      lat: { type: Number, min: -90, max: 90 },
+      lng: { type: Number, min: -180, max: 180 },
     },
     members: {
       type: [memberSchema],
@@ -48,6 +50,10 @@ const familySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    shelter: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Shelter',
     },
   },
   { timestamps: true }

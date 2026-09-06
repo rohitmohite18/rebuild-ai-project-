@@ -7,7 +7,7 @@ import Loading from "../components/Loading.jsx";
 export default function Register() {
   const { user, loading, register, error, setError } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "family" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "survivor" });
   const [busy, setBusy] = useState(false);
 
   if (loading) return <Loading />;
@@ -74,8 +74,9 @@ export default function Register() {
           value={form.role}
           onChange={(e) => setForm({ ...form, role: e.target.value })}
         >
-          <option value="family">Affected family</option>
+          <option value="survivor">Affected family</option>
           <option value="volunteer">Volunteer</option>
+          <option value="admin">Administrator</option>
         </select>
       </label>
       <button disabled={busy} className="btn-teal mt-5 w-full">
